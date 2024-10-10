@@ -4,13 +4,67 @@
 #include <limits.h> //for INT_MAX
 #include "parser.h"
 #include "utils.h"
-
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 void terminate(char *line) {
     if (line)
         free(line); //release memory allocated to line pointer
     printf("bye\n");
     exit(0);
+}
+
+void execute_single_command(struct cmdline *l) {
+    pid_t pid;
+    int status;
+    char **cmd = l->seq[0];
+
+    pid = fork();
+    if (pid == -1) {
+        perror("fork");
+        exit(1);
+    } else if (pid == 0) {
+        /* Child process */
+
+        /* Handle input redirection */
+        if (l->in != NULL) {
+            int fd_in = open(l->in, O_RDONLY);
+            if (fd_in < 0) {
+                perror(l->in);
+                exit(1);
+            }
+            dup2(fd_in, STDIN_FILENO);
+            close(fd_in);
+        }
+
+        /* Handle output redirection */
+        if (l->out != NULL) {
+            int fd_out = open(l->out, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+            if (fd_out < 0) {
+                perror(l->out);
+                exit(1);
+            }
+            dup2(fd_out, STDOUT_FILENO);
+            close(fd_out);
+        }
+
+        /* Execute the command */
+        execvp(cmd[0], cmd);
+        /* If execvp returns, an error occurred */
+        perror(cmd[0]);
+        exit(1);
+    } else {
+        /* Parent process */
+        if (!l->bg) {
+            /* Wait for the child process to finish */
+            waitpid(pid, &status, 0);
+        } else {
+            /* Background process, do not wait */
+            printf("Process running in background with PID %d\n", pid);
+        }
+    }
 }
 
 
@@ -53,7 +107,7 @@ int main(void) {
         line = readline(prompt); // line is a pointer to char (string)
         if (line == 0 || ! strncmp(line,"exit", 4)) {
             terminate(line);
-        }
+        } 
         else {
             /* parsecmd, free line, and set it up to 0 */
             l = parsecmd( & line);
@@ -62,12 +116,12 @@ int main(void) {
             if (l == 0) {
 
                 terminate(0);
-            }
+            } 
             else if (l->err != 0) {
                 /* Syntax error, read another command */
                 printf("error: %s\n", l->err);
                 continue;
-            }
+            } 
             else {
                 /* there is a command to execute, let's print the sequence */
                 if(l->in !=0) printf("in: %s\n", l->in);
@@ -83,6 +137,9 @@ int main(void) {
                     }
                     printf("\n");
                 }
+
+                /* Execute the command(s) */
+                execute_single_command(l);
 
             }
         }
