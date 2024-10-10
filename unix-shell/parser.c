@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/_types/_size_t.h>
+#include <sys/types.h>
 
 #define READ_CHAR *(*cur_buf)++ = *(*cur)++
 #define SKIP_CHAR (*cur)++
