@@ -12,7 +12,7 @@ void add_job(pid_t pid, char *cmdline){
     
     if(!new_job){
         perror("malloc");
-        exit(1)
+        exit(1);
     } else {
         new_job->pid = pid;
         new_job->cmdline = strdup(cmdline);
@@ -33,7 +33,7 @@ void update_jobs(){
         /* Check if the process has finished */
         result = waitpid(current->pid, &status, WNOHANG);
         if (result == -1){
-            perror("waitpid")
+            perror("waitpid");
             current->status = 1;
         } else if (result > 0){
             current->status = 1;

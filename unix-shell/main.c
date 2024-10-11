@@ -60,6 +60,12 @@ int main(void) {
         line = readline(prompt); // line is a pointer to char (string)
         if (line == 0 || ! strncmp(line,"exit", 4)) {
             terminate(line);
+        }
+        else if (strcmp(line, "jobs") == 0){
+            /* handles the built "jobs" command */
+            print_jobs();
+            free(line);
+            continue;
         } 
         else {
             /* parsecmd, free line, and set it up to 0 */
@@ -102,7 +108,14 @@ int main(void) {
 
             }
         }
+
+        /* Update the status of background jobs */
+        update_jobs();
     }
+
+    /* Free any remaining jobs on exit */
+    free_jobs();
+    return 0;
 }
 
 void execute_single_command(struct cmdline *l) {
@@ -113,7 +126,7 @@ void execute_single_command(struct cmdline *l) {
     /* reconstruct the command line for storage */
     char *cmdline = strdup(cmd[0]);
     for(int i = 1; cmd[i]!=NULL; i++){
-        cmdline = realloc(cmdline,strlen(cmdline) + strlen(cmd[i]));
+        cmdline = realloc(cmdline,strlen(cmdline) + strlen(cmd[i]) + 2);
         strcat(cmdline, " ");
         strcat(cmdline,cmd[i]);
     }
@@ -157,9 +170,11 @@ void execute_single_command(struct cmdline *l) {
         if (!l->bg) {
             /* Wait for the child process to finish */
             waitpid(pid, &status, 0);
+            free(cmdline);
         } else {
             /* Background process, do not wait */
             printf("Process running in background with PID %d\n", pid);
+            add_job(pid, cmdline);
         }
     }
 }
@@ -181,6 +196,8 @@ void execute_piped_commands(struct cmdline *l) {
             exit(1);
         }
     }
+
+    pid_t pids[num_cmds];
 
     for (i = 0; i < num_cmds; i++) {
         pid_t pid = fork();
@@ -247,12 +264,24 @@ void execute_piped_commands(struct cmdline *l) {
         close(pipefds[i]);
     }
 
+    /* Reconstruct the command line for storage */
+    char *cmdline = strdup(l->seq[0][0]);
+    for ( i = 0; i < num_cmds; i++)
+    {
+        cmdline = realloc(cmdline, strlen(cmdline) + strlen(l->seq[i][0]) + 4);
+        strcat(cmdline," | ");
+        strcat(cmdline, l->seq[i][0]);
+    }
+    
+
     /* Wait for all child processes */
     if (!l->bg) {
         for (i = 0; i < num_cmds; i++) {
-            wait(NULL);
+            waitpid(pids[i],NULL,0);
         }
+        free(cmdline);
     } else {
         printf("Piped commands running in background\n");
+        add_job(pids[num_cmds - 1], cmdline);
     }
 }
