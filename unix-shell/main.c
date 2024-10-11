@@ -16,6 +16,94 @@ void terminate(char *line) {
     exit(0);
 }
 
+/* Read a line from standard input and put it in a char[] */
+char* readline(const char *prompt)
+{
+    size_t buf_len = 16;
+    char *buf = xmalloc(buf_len * sizeof(char));
+
+    printf("%s", prompt);
+    if (fgets(buf, buf_len, stdin) == NULL) {
+        free(buf);
+        return NULL;
+    }
+
+    do {
+        size_t l = strlen(buf);
+        if ((l > 0) && (buf[l-1] == '\n')) {
+            l--;
+            buf[l] = 0;
+            return buf;
+        }
+        if (buf_len >= (INT_MAX / 2)) memory_error();
+        buf_len *= 2;
+        buf = xrealloc(buf, buf_len * sizeof(char));
+        if (fgets(buf + l, buf_len - l, stdin) == NULL) return buf;
+    } while (1);
+}
+
+/* Function prototypes */
+void execute_single_command(struct cmdline *l);
+void execute_piped_commands(struct cmdline *l);
+
+int main(void) {
+    while (1) {
+        struct cmdline *l;
+        char *line=0;
+        int i, j;
+        char *prompt = "myshell>";
+
+        /* Readline use some internal memory structure that
+           can not be cleaned at the end of the program. Thus
+           one memory leak per command seems unavoidable yet */
+        line = readline(prompt); // line is a pointer to char (string)
+        if (line == 0 || ! strncmp(line,"exit", 4)) {
+            terminate(line);
+        } 
+        else {
+            /* parsecmd, free line, and set it up to 0 */
+            l = parsecmd( & line);
+
+            /* If input stream closed, normal termination */
+            if (l == 0) {
+
+                terminate(0);
+            } 
+            else if (l->err != 0) {
+                /* Syntax error, read another command */
+                printf("error: %s\n", l->err);
+                continue;
+            } 
+            else {
+                /* there is a command to execute, let's print the sequence */
+                if(l->in !=0) printf("in: %s\n", l->in);
+                if(l->out != 0) printf("out: %s\n", l->out);
+                printf("bg: %d\n", l->bg);
+
+                /* Display each command of the pipe */
+                for (i=0; l->seq[i]!=0; i++) {
+                    char **cmd = l->seq[i];
+                    printf("seq[%d]: ", i);
+                    for (j=0; cmd[j]!=0; j++) {
+                        printf("'%s' ", cmd[j]);
+                    }
+                    printf("\n");
+                }
+
+                /* Execute the command(s) */
+                if (l->seq[1] == NULL) {
+                    /* Only one command, no pipes */
+                    execute_single_command(l);
+                } else {
+                    /* Multiple commands (pipes) */
+                    execute_piped_commands(l);
+                }
+
+            }
+        }
+    }
+}
+
 void execute_single_command(struct cmdline *l) {
     pid_t pid;
     int status;
@@ -67,81 +155,95 @@ void execute_single_command(struct cmdline *l) {
     }
 }
 
+void execute_piped_commands(struct cmdline *l) {
+    int i, j;
+    int num_cmds = 0;
 
-/* Read a line from standard input and put it in a char[] */
-char* readline(const char *prompt)
-{
-    size_t buf_len = 16;
-    char *buf = xmalloc(buf_len * sizeof(char));
-
-    printf("%s", prompt);
-    if (fgets(buf, buf_len, stdin) == NULL) {
-        free(buf);
-        return NULL;
+    /* Count the number of commands */
+    while (l->seq[num_cmds] != NULL) {
+        num_cmds++;
     }
 
-    do {
-        size_t l = strlen(buf);
-        if ((l > 0) && (buf[l-1] == '\n')) {
-            l--;
-            buf[l] = 0;
-            return buf;
+    /* Create the necessary number of pipes */
+    int pipefds[2 * (num_cmds - 1)];
+    for (i = 0; i < (num_cmds - 1); i++) {
+        if (pipe(pipefds + i * 2) < 0) {
+            perror("pipe");
+            exit(1);
         }
-        if (buf_len >= (INT_MAX / 2)) memory_error();
-        buf_len *= 2;
-        buf = xrealloc(buf, buf_len * sizeof(char));
-        if (fgets(buf + l, buf_len - l, stdin) == NULL) return buf;
-    } while (1);
-}
+    }
 
-int main(void) {
-    while (1) {
-        struct cmdline *l;
-        char *line=0;
-        int i, j;
-        char *prompt = "myshell>";
+    for (i = 0; i < num_cmds; i++) {
+        pid_t pid = fork();
+        if (pid == -1) {
+            perror("fork");
+            exit(1);
+        } else if (pid == 0) {
+            /* Child process */
 
-        /* Readline use some internal memory structure that
-           can not be cleaned at the end of the program. Thus
-           one memory leak per command seems unavoidable yet */
-        line = readline(prompt); // line is a pointer to char (string)
-        if (line == 0 || ! strncmp(line,"exit", 4)) {
-            terminate(line);
-        } 
-        else {
-            /* parsecmd, free line, and set it up to 0 */
-            l = parsecmd( & line);
-
-            /* If input stream closed, normal termination */
-            if (l == 0) {
-
-                terminate(0);
-            } 
-            else if (l->err != 0) {
-                /* Syntax error, read another command */
-                printf("error: %s\n", l->err);
-                continue;
-            } 
-            else {
-                /* there is a command to execute, let's print the sequence */
-                if(l->in !=0) printf("in: %s\n", l->in);
-                if(l->out != 0) printf("out: %s\n", l->out);
-                printf("bg: %d\n", l->bg);
-
-                /* Display each command of the pipe */
-                for (i=0; l->seq[i]!=0; i++) {
-                    char **cmd = l->seq[i];
-                    printf("seq[%d]: ", i);
-                    for (j=0; cmd[j]!=0; j++) {
-                        printf("'%s' ", cmd[j]);
-                    }
-                    printf("\n");
+            /* Redirect input if not first command */
+            if (i > 0) {
+                if (dup2(pipefds[(i - 1) * 2], STDIN_FILENO) < 0) {
+                    perror("dup2");
+                    exit(1);
                 }
-
-                /* Execute the command(s) */
-                execute_single_command(l);
-
+            } else if (l->in != NULL) {
+                /* Handle input redirection for the first command */
+                int fd_in = open(l->in, O_RDONLY);
+                if (fd_in < 0) {
+                    perror(l->in);
+                    exit(1);
+                }
+                if (dup2(fd_in, STDIN_FILENO) < 0) {
+                    perror("dup2");
+                    exit(1);
+                }
+                close(fd_in);
             }
+
+            /* Redirect output if not last command */
+            if (i < num_cmds - 1) {
+                if (dup2(pipefds[i * 2 + 1], STDOUT_FILENO) < 0) {
+                    perror("dup2");
+                    exit(1);
+                }
+            } else if (l->out != NULL) {
+                /* Handle output redirection for the last command */
+                int fd_out = open(l->out, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+                if (fd_out < 0) {
+                    perror(l->out);
+                    exit(1);
+                }
+                if (dup2(fd_out, STDOUT_FILENO) < 0) {
+                    perror("dup2");
+                    exit(1);
+                }
+                close(fd_out);
+            }
+
+            /* Close all pipe file descriptors */
+            for (j = 0; j < 2 * (num_cmds - 1); j++) {
+                close(pipefds[j]);
+            }
+
+            /* Execute the command */
+            execvp(l->seq[i][0], l->seq[i]);
+            perror(l->seq[i][0]);
+            exit(1);
         }
+    }
+
+    /* Parent process closes all pipe file descriptors */
+    for (i = 0; i < 2 * (num_cmds - 1); i++) {
+        close(pipefds[i]);
+    }
+
+    /* Wait for all child processes */
+    if (!l->bg) {
+        for (i = 0; i < num_cmds; i++) {
+            wait(NULL);
+        }
+    } else {
+        printf("Piped commands running in background\n");
     }
 }
