@@ -4,6 +4,7 @@
 #include <limits.h> //for INT_MAX
 #include "parser.h"
 #include "utils.h"
+#include "jobs.h"
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -108,6 +109,14 @@ void execute_single_command(struct cmdline *l) {
     pid_t pid;
     int status;
     char **cmd = l->seq[0];
+
+    /* reconstruct the command line for storage */
+    char *cmdline = strdup(cmd[0]);
+    for(int i = 1; cmd[i]!=NULL; i++){
+        cmdline = realloc(cmdline,strlen(cmdline) + strlen(cmd[i]));
+        strcat(cmdline, " ");
+        strcat(cmdline,cmd[i]);
+    }
 
     pid = fork();
     if (pid == -1) {
