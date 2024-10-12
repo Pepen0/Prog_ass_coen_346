@@ -256,6 +256,9 @@ void execute_piped_commands(struct cmdline *l) {
             execvp(l->seq[i][0], l->seq[i]);
             perror(l->seq[i][0]);
             exit(1);
+        }else{
+            /* Parent process */
+            pids[i] = pid;
         }
     }
 
@@ -273,9 +276,9 @@ void execute_piped_commands(struct cmdline *l) {
         strcat(cmdline, l->seq[i][0]);
     }
     
-
-    /* Wait for all child processes */
+    /* Background execution */
     if (!l->bg) {
+        /* Wait for all child processes */
         for (i = 0; i < num_cmds; i++) {
             waitpid(pids[i],NULL,0);
         }
