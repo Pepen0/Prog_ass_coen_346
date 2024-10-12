@@ -8,7 +8,7 @@ struct job{
     char *cmdline;    /*    Command line                           */
     int status;       /*    0: running, 1: finished                */
     struct job *next; /*    Pointer to the next jobin the list     */
-}
+};
 
 /* Function prototypes */
 void add_job(pid_t pid, char *cmdline);
