@@ -55,10 +55,10 @@ This project is a programming assignment for COEN 346. It aims to develop a conc
 
 ### Example Commands
 
-* `curl http://localhost:8080`
-* `curl http://localhost:8080/accounts`
-* `curl http://localhost:8080/accounts/{account_id}`
-* `curl -X POST -H "Content-Type: application/json" -d '{"fromAccount": "{account_id}", "toAccount": "{account_id}", "amount": {amount}}' http://localhost:8080/transfer`
+* `curl http://localhost:8000`
+* `curl http://localhost:8000/accounts`
+* `curl http://localhost:8000/accounts/{account_id}`
+* `curl -X POST -H "Content-Type: application/json" -d '{"fromAccount": "{account_id}", "toAccount": "{account_id}", "amount": {amount}}' http://localhost:8000/transfer`
 
 ## Contributing
 
