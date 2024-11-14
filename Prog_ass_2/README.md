@@ -8,6 +8,7 @@
 * [Installation](#installation)
 * [Usage](#usage)
 * [Testing](#testing)
+* [Running the Simple Clients](#running-the-simple-clients)
 * [Contributing](#contributing)
 * [License](#license)
 
@@ -21,6 +22,7 @@ This project is a programming assignment for COEN 346. It aims to develop a conc
 * Client-server architecture
 * Account management
 * Transfer functionality
+
 ## Requirements
 
 * Java 11
@@ -47,23 +49,31 @@ This project is a programming assignment for COEN 346. It aims to develop a conc
 2. **Run the server**: Run `java -jar target/webserver-1.0-SNAPSHOT.jar` to start the server.
 3. **Use a tool to test the server**: Use a tool like `curl` or a web browser to test the server.
 
-#### Test Cases
+## Running the Simple Clients
 
-* **GET /accounts**: Verify that the server returns a list of accounts.
-* **GET /accounts/{account_id}**: Verify that the server returns the details of a specific account.
-* **POST /transfer**: Verify that the server can handle a transfer request and update the account balances accordingly.
+To run the simple clients, navigate to the `Prog_ass_2/webserver` directory and run the following commands:
 
-### Example Commands
+### SimpleWebClient
 
-* `curl http://localhost:8000`
-* `curl http://localhost:8000/accounts`
-* `curl http://localhost:8000/accounts/{account_id}`
-* `curl -X POST -H "Content-Type: application/json" -d '{"fromAccount": "{account_id}", "toAccount": "{account_id}", "amount": {amount}}' http://localhost:8000/transfer`
+```bash
+javac -d target src/main/java/ca/concordia/client/SimpleWebClient.java
+java -cp target ca.concordia.client.SimpleWebClient
+```
+
+This will compile and run the simple client, which will establish a connection to the server at `localhost:8000`.
+
+### SimpleWebClientDeadlock
+
+```bash
+javac -d target src/main/java/ca/concordia/client/SimpleWebClientDeadlock.java
+java -cp target ca.concordia.client.SimpleWebClientDeadlock
+```
+
+This will compile and run the simple client deadlock, which will establish multiple connections to the server at `localhost:8000`.
 
 ## Contributing
 
-* Submit pull requests with clear descriptions of changes.
-* Report issues and bugs.
+Contributions are welcome! Please submit pull requests with clear descriptions of changes.
 
 ## License
 
