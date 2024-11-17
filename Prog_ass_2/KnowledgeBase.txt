@@ -1,0 +1,81 @@
+Understanding Operating System Concepts: A Detailed Table of Contents
+1.2 - A Model for Computation
+A Program for Computation: Defines a program as a recipe for computation, highlighting data manipulation through reading and transformation. An example using C code demonstrates the concept.
+Stages of Program Execution: Outlines the four key steps in program execution: compiling, allocating memory, loading data, and execution.
+Hardware and Virtualization: Explores the roles of the CPU and memory in program execution. Introduces the concept of virtualizing CPU resources and abstracting complex operations.
+10 - Synchronization
+Ensuring Mutual Exclusion: Introduces the problem of "too much milk," illustrating the need for synchronization mechanisms like lock variables and atomic operations to prevent race conditions.
+Hardware-Supported Atomic Operations: Delves into hardware support for atomic operations, specifically discussing Test and Set Lock (TSL), Swap, and Compare and Swap (CAS) instructions.
+Atomic Variables and Java Implementation: Explores the use of atomic variables as building blocks for synchronization tools, including atomic integers and booleans. Provides examples of atomic variable usage in Java.
+Additional Resources: Points towards "The Little Book of Semaphores" as a supplementary reference for in-depth understanding of semaphore concepts.
+11 - Synchronization II
+Goal of Synchronization: Emphasizes the goal of synchronization, which is to ensure mutually exclusive access to critical sections of code using constructs like lock() and unlock().
+Hardware-Supported Locks: Reviews hardware-supported atomic instructions: Test and Set Lock (TSL) and Compare and Swap (CAS). Includes exercises to solidify understanding of CAS behavior.
+Compare and Swap Lock and Atomic Variables: Discusses the implementation of locks using the CAS instruction and revisits atomic variables, highlighting their role in uninterruptible data updates.
+Atomic Increment Example: Provides a code example and exercise demonstrating atomic increment operation using CAS, illustrating its use in multi-threaded scenarios.
+13 - Semaphores
+Introduction to Semaphores: Introduces semaphores as a synchronization tool that uses wait() and signal() operations to control access to shared resources.
+Implementing Semaphores with CAS and Sleep: Presents a solution using CAS and sleep() for synchronization and explores potential problems like context switching issues.
+14 - Synchronization Problems
+Inter-Process Communication: Briefly discusses different methods for inter-process communication, including kernel-stored variables, shared address spaces, and shared files.
+Dining Philosophers Problem: Introduces the classic Dining Philosophers problem as an example of resource allocation and deadlock challenges.
+Dining Philosophers Solution: Presents a semaphore-based solution to the Dining Philosophers problem, outlining the code and explaining how it avoids deadlock and ensures fairness.
+2 - System Calls 2
+System Calls and Trap Instruction: Explains the mechanism of system calls using the "trap" instruction, which transitions from user mode to kernel mode to request operating system services.
+Examples of System Calls: Lists examples of system calls in Windows and Unix, categorized by functionalities like memory management and process control.
+Hardware Support for System Calls: Highlights the hardware's role in supporting different operating modes and providing the "trap" instruction for invoking system calls.
+Multimode Operation for Safety: Emphasizes the importance of multimode operation in maintaining system security by separating user processes from the kernel.
+Interrupt Vector Table: Describes the interrupt vector table, which holds the addresses of interrupt handler routines, enabling the CPU to jump to the appropriate kernel code.
+3 - Introduction to Processes
+Process Definition and States: Defines a process and outlines the different states a process can be in, managed by the operating system.
+Process Control Block: Introduces the Process Control Block (PCB) as an abstract data structure containing essential information about a process, including its PC, registers, and stack pointer.
+Process Table: Explains the concept of a process table as a list maintained by the operating system to keep track of all currently existing processes.
+4 - Process Operations
+Fork System Call: Explains the fork() system call, which creates a new child process that is a duplicate of the parent process.
+Process Duplication: Describes the details of process duplication, including PCB duplication, memory address space copying, and inheritance of open files.
+System Call Mechanism: Reiterates the system call mechanism, involving hardware state saving, mode switching, and jumping to the corresponding kernel routine.
+Zombie Processes and Waitpid(): Discusses the concept of zombie processes and the use of waitpid() system call to manage child process termination.
+Exercises: Presents two code examples with exercises to understand the behavior of fork() and shared variables between parent and child processes.
+5.2 - Process Management
+Operating System Roles: This section seems to be lecture notes focusing on the role of operating systems in resource management, scheduling, and security.
+Process Management and Scheduler: Introduces the scheduler as a component of process management.
+Preemptive vs. Non-preemptive Scheduling: Discusses preemptive and non-preemptive scheduling algorithms, noting the differences in their behavior.
+Process State Transitions and Metrics: Visualizes process state transitions between ready, run, terminated, and waiting states. Introduces metrics like arrival time, waiting time, and turnaround time.
+8 - Threads
+Thread Definition and Advantages: Defines a thread as a unit of execution within a process, emphasizing its faster creation and destruction compared to processes.
+User Threads: Introduces the concept of user threads, managed by thread libraries without direct operating system involvement.
+Kernel Threads: Explains kernel threads, which are scheduled by the operating system and are the actual entities executing on the CPU.
+Mapping User Threads to Kernel Threads: Discusses the necessity of mapping user threads to kernel threads for scheduling and execution on the CPU.
+Many-to-One Threading Model: Describes the many-to-one threading model, where multiple user threads are mapped to a single kernel thread, highlighting its limitations.
+9 - Thread API and Race Conditions
+Pthreads API and Example: Introduces the Pthreads API for thread management and presents a C code example demonstrating thread creation and synchronization.
+pthread_create(): Explains the pthread_create() function, its arguments, and how it initiates a new thread with a specified function and arguments.
+Thread Attributes: Details various thread attributes that can be set using pthread_attr_t, including detach state, scope, scheduling policy, and stack size.
+L15- LittleBookOfSemaphores
+Preface and Purpose: Explains the purpose of "The Little Book of Semaphores" as a resource for understanding synchronization using semaphores.
+Table of Contents: Provides the full table of contents, outlining the topics covered in the book, including introduction to synchronization, semaphores, synchronization patterns, and classical synchronization problems.
+Excerpts on Message Passing and Shared Variables: Discusses the use of message passing for synchronization and highlights the challenges of concurrent access to shared variables, introducing the concept of atomic operations.
+Semaphore Syntax and Motivation: Explains the syntax for creating and initializing semaphores and motivates their use as a powerful synchronization tool.
+Synchronization Patterns and Solutions: Presents various synchronization patterns like signaling, rendezvous, mutex, multiplex, and barrier, along with code solutions using semaphores.
+Classical Synchronization Problems and Solutions: Discusses classical synchronization problems like the producer-consumer problem, readers-writers problem, dining philosophers, and cigarette smokers problem. Provides semaphore-based solutions and analysis of potential deadlocks.
+L16- Deadlock
+Deadlock Definition and Conditions: Defines deadlock and lists the four necessary conditions for its occurrence: mutual exclusion, hold and wait, no preemption, and circular wait.
+Deadlock Handling Strategies: Outlines the three strategies for handling deadlock: prevention, avoidance, and detection & recovery.
+Deadlock Prevention: Discusses deadlock prevention by breaking one or more of the necessary conditions for deadlock.
+Deadlock Avoidance: Introduces deadlock avoidance, focusing on the Banker's algorithm as a classic approach.
+Banker's Algorithm Explained: Explains the Banker's algorithm, involving credit limits for processes, identification of safe states, and resource allocation strategies.
+Deadlock Detection for Single and Multiple Instances: Presents different deadlock detection algorithms for systems with single and multiple instances of resource types.
+Wait-for Graph and Resource Allocation Graph: Illustrates deadlock detection using the wait-for graph for single instances and the resource allocation graph for multiple instances.
+Detection Algorithm and Example: Provides a detailed detection algorithm and illustrates its application with an example scenario.
+L17- Memory
+Physical Memory and Address Space: Defines physical memory and the physical address space, explaining how each byte in memory is addressed.
+Memory Address Space Visualization: Visualizes the memory address space using a C code example, showing the addresses of code, global variables, local variables, and dynamically allocated memory.
+Static Memory Relocation: Explains static memory relocation, where code and data are loaded into fixed physical addresses at compile time.
+Limitations of Physical Memory and Introduction to Virtual Memory: Discusses the limitations of physical memory size and introduces the concept of virtual memory to overcome these limitations.
+Base and Bounds Registers: Explains how base and bounds registers are used to implement dynamic relocation, protecting processes from accessing memory outside their allocated space.
+Segmentation: Describes segmentation as a memory management technique that divides the address space into logical segments, each with its base and bounds registers.
+L18- Memory II
+Paging: Introduces paging as a memory management technique that divides both physical and virtual memory into fixed-size blocks called pages and frames, respectively.
+Page Table: Explains the role of the page table in mapping virtual pages to physical frames, using the "valid" bit to indicate if a page is currently loaded in memory.
+Page Fault Handling: Describes the steps involved in handling a page fault, which occurs when a process tries to access a page not currently in memory.
+Instruction Restart: Explains how the operating system restarts the instruction that caused the page fault after loading the missing page into memory.
