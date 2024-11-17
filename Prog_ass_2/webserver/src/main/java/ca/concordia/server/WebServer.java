@@ -182,10 +182,13 @@ public class WebServer {
         out.flush();
     }
 
-    private static synchronized boolean processTransfer(int fromAccount, int toAccount, int value) {
+    // Method to process the transfer
+    private static boolean processTransfer(int fromAccount, int toAccount, int value) {
+        // Critical Section: Accessing and modifying account balances
+        // Potential Deadlock: Accessing two accounts simultaneously
         Account source = accounts.get(fromAccount);
         Account destination = accounts.get(toAccount);
-
+    
         if (source != null && destination != null && source.getBalance() >= value) {
             source.withdraw(value);
             destination.deposit(value);
