@@ -12,6 +12,8 @@ import java.util.concurrent.Executors;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.List;
+import java.util.ArrayList;
 
 //create the WebServer class to receive connections on port 5000. Each connection is handled by a master thread that puts the descriptor in a bounded buffer. A pool of worker threads take jobs from this buffer if there are any to handle the connection.
 public class WebServer {
@@ -21,14 +23,22 @@ public class WebServer {
 
     // Create a HashMap to store the locks
     private static Map<Integer, ReentrantLock> locks = new HashMap<>();
+    
+    // Create a list to store the successful transactions
+    private static List<String> successfulTransactions = new ArrayList<>();
+    
+    // Counter for transaction numbers
+    private static int transactionCounter = 0;
 
     // Method to initialize the accounts
     private static void initializeAccounts() {
         accounts.put(123, new Account(4000, 123));
         accounts.put(321, new Account(5000, 321));
         accounts.put(432, new Account(2000, 432));
+        accounts.put(345, new Account(4000, 345));
     }
 
+    // Method to start the server
     public void start() throws java.io.IOException {
         // Initialize the accounts
         initializeAccounts();
@@ -49,7 +59,7 @@ public class WebServer {
                             // Handle the client request
                             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                             OutputStream out = clientSocket.getOutputStream();
-    
+
                             String request = in.readLine();
                             if (request != null) {
                                 if (request.startsWith("GET")) {
@@ -60,7 +70,7 @@ public class WebServer {
                                     handlePostRequest(in, out);
                                 }
                             }
-    
+
                             // Close the streams and the socket
                             in.close();
                             out.close();
@@ -74,6 +84,7 @@ public class WebServer {
         }
     }
 
+   // Method to handle the GET request
     private static void handleGetRequest(OutputStream out) throws IOException {
         // Respond with a basic HTML page
         System.out.println("Handling GET request");
@@ -86,7 +97,7 @@ public class WebServer {
                 "<body>\n" +
                 "\n" +
                 "<h1>Welcome to Concordia Transfers</h1>\n" +
-                "<p>Select the account and amount to transfer</p>\n" +
+                "<h2>Select the account and amount to transfer</h2>\n" +
                 "\n" +
                 "<form action=\"/submit\" method=\"post\">\n" +
                 "        <label for=\"account\">Account:</label>\n" +
@@ -100,10 +111,15 @@ public class WebServer {
                 "\n" +
                 "        <input type=\"submit\" value=\"Submit\">\n" +
                 "    </form>\n" +
-                "<p>Current Account Balance: </p>\n" +
+                "<h2>Current Account Balance: </h2>\n" +
                 "<table>\n" +
                 "<tr><th>Account ID</th><th>Account Balance</th></tr>\n" +
                 displayAccounts() +
+                "</table>\n" +
+                "<h2>Successful Transactions: </h2>\n" +
+                "<table>\n" +
+                "<tr><th>Transaction No.</th><th>From Account</th><th>To Account</th><th>Value</th></tr>\n" +
+                displayTransactions() +
                 "</table>\n" +
                 "</body>\n" +
                 "</html>\n";
@@ -111,6 +127,7 @@ public class WebServer {
         out.flush();
     }
 
+    // Method to handle the POST request
     private static void handlePostRequest(BufferedReader in, OutputStream out) throws IOException {
         System.out.println("Handling post request");
         StringBuilder requestBody = new StringBuilder();
@@ -171,10 +188,15 @@ public class WebServer {
                 "<p>Value: " + value + "</p>" +
                 "<p>To Account: " + toAccount + "</p>";
         }
-        responseContent += "<p>Current Account Balance: </p>\n" +
+        responseContent += "<h2>Current Account Balance: </h2>\n" +
             "<table>\n" +
             "<tr><th>Account ID</th><th>Account Balance</th></tr>\n" +
             displayAccounts() +
+            "</table>\n" +
+            "<h2>Successful Transactions: </h2>\n" +
+            "<table>\n" +
+            "<tr><th>Transaction No.</th><th>From Account</th><th>To Account</th><th>Value</th></tr>\n" +
+            displayTransactions() +
             "</table>\n"+"</body></html>";
 
         // Respond with the received form inputs
@@ -212,12 +234,13 @@ public class WebServer {
                 Account source = accounts.get(fromAccount);
                 Account destination = accounts.get(toAccount);
     
-            if (source != null && destination != null && source.getBalance() >= value) {
-                source.withdraw(value);
-                destination.deposit(value);
-                return true;
-            }
-            return false;
+                if (source != null && destination != null && source.getBalance() >= value) {
+                    source.withdraw(value);
+                    destination.deposit(value);
+                    recordTransaction(fromAccount, toAccount, value);
+                    return true;
+                }
+                return false;
             } finally {
                 secondLockObj.unlock(); // Unlock the second account
             }
@@ -237,11 +260,26 @@ public class WebServer {
         return lock;
     }
 
+    // Method to record a successful transaction
+    private static void recordTransaction(int fromAccount, int toAccount, int value) {
+        transactionCounter++;
+        successfulTransactions.add("<tr><td>" + transactionCounter + "</td><td>" + fromAccount + "</td><td>" + toAccount + "</td><td>" + value + "</td></tr>");
+    }
+
     // Method to display the accounts for debugging
     private static String displayAccounts(){
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<Integer, Account> entry : accounts.entrySet()) {
             sb.append("<tr><td>").append(entry.getKey()).append("</td><td>").append(entry.getValue().getBalance()).append("</td></tr>");
+        }
+        return sb.toString();
+    }
+
+    // Method to display the transactions for debugging
+    private static String displayTransactions() {
+        StringBuilder sb = new StringBuilder();
+        for (String transaction : successfulTransactions) {
+            sb.append(transaction);
         }
         return sb.toString();
     }
