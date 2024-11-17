@@ -7,35 +7,47 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URLDecoder;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 //create the WebServer class to receive connections on port 5000. Each connection is handled by a master thread that puts the descriptor in a bounded buffer. A pool of worker threads take jobs from this buffer if there are any to handle the connection.
 public class WebServer {
 
-    public void start() throws java.io.IOException{
+    public void start() throws java.io.IOException {
         //Create a server socket
         ServerSocket serverSocket = new ServerSocket(8000);
-        while(true){
+        ExecutorService threadPool = Executors.newCachedThreadPool();
+        while (true) {
             System.out.println("Waiting for a client to connect...");
             //Accept a connection from a client
-            Socket clientSocket = serverSocket.accept();
+            final Socket clientSocket = serverSocket.accept();
             System.out.println("New client...");
-            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            OutputStream out = clientSocket.getOutputStream();
+            threadPool.submit(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                        OutputStream out = clientSocket.getOutputStream();
 
-            String request = in.readLine();
-            if (request != null) {
-                if (request.startsWith("GET")) {
-                    // Handle GET request
-                    handleGetRequest(out);
-                } else if (request.startsWith("POST")) {
-                    // Handle POST request
-                    handlePostRequest(in, out);
+                        String request = in.readLine();
+                        if (request != null) {
+                            if (request.startsWith("GET")) {
+                                // Handle GET request
+                                handleGetRequest(out);
+                            } else if (request.startsWith("POST")) {
+                                // Handle POST request
+                                handlePostRequest(in, out);
+                            }
+                        }
+
+                        in.close();
+                        out.close();
+                        clientSocket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
-
-            in.close();
-            out.close();
-            clientSocket.close();
+            });
         }
     }
 
