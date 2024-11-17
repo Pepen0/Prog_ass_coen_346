@@ -17,7 +17,7 @@ public class WebServer {
 
     // Create a HashMap to store the accounts
     private static Map<Integer, Account> accounts = new HashMap<>();
-    
+
     // Method to initialize the accounts
     private static void initializeAccounts() {
         accounts.put(123, new Account(4000, 123));
@@ -122,7 +122,7 @@ public class WebServer {
         System.out.println(requestBody.toString());
         // Parse the request body as URL-encoded parameters
         String[] params = requestBody.toString().split("&");
-        String account = null, value = null, toAccount = null;
+        Integer account = null, value = null, toAccount = null;
 
         // Decode the parameters
         for (String param : params) {
@@ -133,25 +133,35 @@ public class WebServer {
 
                 switch (key) {
                     case "account":
-                        account = val;
+                        account = Integer.parseInt(val);
                         break;
                     case "value":
-                        value = val;
+                        value = Integer.parseInt(val);
                         break;
                     case "toAccount":
-                        toAccount = val;
+                        toAccount = Integer.parseInt(val);
                         break;
                 }
             }
         }
 
+        // Process the transfer
+        boolean success = processTransfer(account, toAccount, value);
+
         // Create the response
-        String responseContent = "<html><body><h1>Thank you for using Concordia Transfers</h1>" +
-                "<h2>Received Form Inputs:</h2>"+
+        String responseContent = "<html><body><h1>Thank you for using Concordia Transfers</h1>";
+        if (success) {
+            responseContent += "<h2>Transfer Successful!</h2>"+
                 "<p>Account: " + account + "</p>" +
                 "<p>Value: " + value + "</p>" +
-                "<p>To Account: " + toAccount + "</p>" +
-                "</body></html>";
+                "<p>To Account: " + toAccount + "</p>";
+        } else {
+            responseContent += "<h2>Transfer Failed!</h2>"+
+                "<p>Account: " + account + "</p>" +
+                "<p>Value: " + value + "</p>" +
+                "<p>To Account: " + toAccount + "</p>";
+        }
+        responseContent += "</body></html>";
 
         // Respond with the received form inputs
         String response = "HTTP/1.1 200 OK\r\n" +
@@ -161,6 +171,18 @@ public class WebServer {
 
         out.write(response.getBytes());
         out.flush();
+    }
+
+    private static synchronized boolean processTransfer(int fromAccount, int toAccount, int value) {
+        Account source = accounts.get(fromAccount);
+        Account destination = accounts.get(toAccount);
+
+        if (source != null && destination != null && source.getBalance() >= value) {
+            source.withdraw(value);
+            destination.deposit(value);
+            return true;
+        }
+        return false;
     }
 
     public static void main(String[] args) {
