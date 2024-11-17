@@ -17,7 +17,7 @@ public class SimpleWebClient {
             PrintWriter writer = new PrintWriter(new OutputStreamWriter(out));
 
             // Prepare the POST request with form data
-            String postData = "account=1234&value=1000&toAccount=5678&toValue=500";
+            String postData = "account=1234&value=1000&toAccount=5678";
             Thread.sleep(60000);
             // Send the POST request
             writer.println("POST /submit HTTP/1.1");

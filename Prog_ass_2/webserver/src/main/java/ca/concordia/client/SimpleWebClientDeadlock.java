@@ -30,7 +30,7 @@ public class SimpleWebClientDeadlock implements Runnable {
             writer = new PrintWriter(new OutputStreamWriter(out));
 
             // Prepare the POST request with form data
-            String postData = "account="+fromAccount+"&value=1&toAccount="+toAccount+"&toValue=1";
+            String postData = "account="+fromAccount+"&value=1&toAccount="+toAccount;
             //create a random number between 1000 and 60000
             //int waitfor = (int)(Math.random() * 1000 + 200);
             //Thread.sleep(waitfor);

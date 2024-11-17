@@ -9,11 +9,26 @@ import java.net.Socket;
 import java.net.URLDecoder;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.HashMap;
+import java.util.Map;
 
 //create the WebServer class to receive connections on port 5000. Each connection is handled by a master thread that puts the descriptor in a bounded buffer. A pool of worker threads take jobs from this buffer if there are any to handle the connection.
 public class WebServer {
 
+    // Create a HashMap to store the accounts
+    private static Map<Integer, Account> accounts = new HashMap<>();
+    
+    // Method to initialize the accounts
+    private static void initializeAccounts() {
+        accounts.put(123, new Account(4000, 123));
+        accounts.put(321, new Account(5000, 321));
+        accounts.put(432, new Account(2000, 432));
+    }
+
     public void start() throws java.io.IOException {
+        // Initialize the accounts
+        initializeAccounts();
+
         //Create a server socket and an executor service to handle client requests
         ServerSocket serverSocket = new ServerSocket(8000);
         ExecutorService threadPool = Executors.newCachedThreadPool();
