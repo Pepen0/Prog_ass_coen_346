@@ -78,9 +78,6 @@ public class WebServer {
                 "        <label for=\"toAccount\">To Account:</label>\n" +
                 "        <input type=\"text\" id=\"toAccount\" name=\"toAccount\"><br><br>\n" +
                 "\n" +
-                "        <label for=\"toValue\">To Value:</label>\n" +
-                "        <input type=\"text\" id=\"toValue\" name=\"toValue\"><br><br>\n" +
-                "\n" +
                 "        <input type=\"submit\" value=\"Submit\">\n" +
                 "    </form>\n" +
                 "</body>\n" +
@@ -110,7 +107,7 @@ public class WebServer {
         System.out.println(requestBody.toString());
         // Parse the request body as URL-encoded parameters
         String[] params = requestBody.toString().split("&");
-        String account = null, value = null, toAccount = null, toValue = null;
+        String account = null, value = null, toAccount = null;
 
         // Decode the parameters
         for (String param : params) {
@@ -129,9 +126,6 @@ public class WebServer {
                     case "toAccount":
                         toAccount = val;
                         break;
-                    case "toValue":
-                        toValue = val;
-                        break;
                 }
             }
         }
@@ -142,7 +136,6 @@ public class WebServer {
                 "<p>Account: " + account + "</p>" +
                 "<p>Value: " + value + "</p>" +
                 "<p>To Account: " + toAccount + "</p>" +
-                "<p>To Value: " + toValue + "</p>" +
                 "</body></html>";
 
         // Respond with the received form inputs
