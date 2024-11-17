@@ -34,42 +34,43 @@ public class WebServer {
         initializeAccounts();
 
         //Create a server socket and an executor service to handle client requests
-        ServerSocket serverSocket = new ServerSocket(8000);
-        ExecutorService threadPool = Executors.newCachedThreadPool();
-        while (true) {
-            System.out.println("Waiting for a client to connect...");
-            //Accept a connection from a client
-            final Socket clientSocket = serverSocket.accept();
-            System.out.println("New client...");
-            // Submit the client request to the executor service
-            threadPool.submit(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        // Handle the client request
-                        BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                        OutputStream out = clientSocket.getOutputStream();
-
-                        String request = in.readLine();
-                        if (request != null) {
-                            if (request.startsWith("GET")) {
-                                // Handle GET request
-                                handleGetRequest(out);
-                            } else if (request.startsWith("POST")) {
-                                // Handle POST request
-                                handlePostRequest(in, out);
+        try(ServerSocket serverSocket = new ServerSocket(8000)) {
+            ExecutorService threadPool = Executors.newCachedThreadPool();
+            while (true) {
+                System.out.println("Waiting for a client to connect...");
+                //Accept a connection from a client
+                final Socket clientSocket = serverSocket.accept();
+                System.out.println("New client...");
+                // Submit the client request to the executor service
+                threadPool.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            // Handle the client request
+                            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                            OutputStream out = clientSocket.getOutputStream();
+    
+                            String request = in.readLine();
+                            if (request != null) {
+                                if (request.startsWith("GET")) {
+                                    // Handle GET request
+                                    handleGetRequest(out);
+                                } else if (request.startsWith("POST")) {
+                                    // Handle POST request
+                                    handlePostRequest(in, out);
+                                }
                             }
+    
+                            // Close the streams and the socket
+                            in.close();
+                            out.close();
+                            clientSocket.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
-
-                        // Close the streams and the socket
-                        in.close();
-                        out.close();
-                        clientSocket.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
-                }
-            });
+                });
+            }
         }
     }
 
