@@ -14,7 +14,7 @@ import java.util.concurrent.Executors;
 public class WebServer {
 
     public void start() throws java.io.IOException {
-        //Create a server socket
+        //Create a server socket and an executor service to handle client requests
         ServerSocket serverSocket = new ServerSocket(8000);
         ExecutorService threadPool = Executors.newCachedThreadPool();
         while (true) {
@@ -22,10 +22,12 @@ public class WebServer {
             //Accept a connection from a client
             final Socket clientSocket = serverSocket.accept();
             System.out.println("New client...");
+            // Submit the client request to the executor service
             threadPool.submit(new Runnable() {
                 @Override
                 public void run() {
                     try {
+                        // Handle the client request
                         BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                         OutputStream out = clientSocket.getOutputStream();
 
@@ -40,6 +42,7 @@ public class WebServer {
                             }
                         }
 
+                        // Close the streams and the socket
                         in.close();
                         out.close();
                         clientSocket.close();
@@ -109,6 +112,7 @@ public class WebServer {
         String[] params = requestBody.toString().split("&");
         String account = null, value = null, toAccount = null, toValue = null;
 
+        // Decode the parameters
         for (String param : params) {
             String[] parts = param.split("=");
             if (parts.length == 2) {
