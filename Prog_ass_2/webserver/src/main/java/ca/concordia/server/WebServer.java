@@ -11,12 +11,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 //create the WebServer class to receive connections on port 5000. Each connection is handled by a master thread that puts the descriptor in a bounded buffer. A pool of worker threads take jobs from this buffer if there are any to handle the connection.
 public class WebServer {
 
     // Create a HashMap to store the accounts
     private static Map<Integer, Account> accounts = new HashMap<>();
+
+    // Create a HashMap to store the locks
+    private static Map<Integer, ReentrantLock> locks = new HashMap<>();
 
     // Method to initialize the accounts
     private static void initializeAccounts() {
@@ -186,15 +190,50 @@ public class WebServer {
     private static boolean processTransfer(int fromAccount, int toAccount, int value) {
         // Critical Section: Accessing and modifying account balances
         // Potential Deadlock: Accessing two accounts simultaneously
-        Account source = accounts.get(fromAccount);
-        Account destination = accounts.get(toAccount);
-    
-        if (source != null && destination != null && source.getBalance() >= value) {
-            source.withdraw(value);
-            destination.deposit(value);
-            return true;
+        
+        // Prevent Deadlock and race condition by locking the accounts in a specific order
+        int firstLock, secondLock;
+        if (fromAccount < toAccount) {
+            firstLock = fromAccount;
+            secondLock = toAccount;
+        } else {
+            firstLock = toAccount;
+            secondLock = fromAccount;
         }
-        return false;
+
+        ReentrantLock firsLockObj = getLock(firstLock);
+        ReentrantLock secondLockObj = getLock(secondLock);
+
+        firsLockObj.lock(); // Lock the first account
+        try {
+            secondLockObj.lock(); // Lock the second account
+            try {
+                Account source = accounts.get(fromAccount);
+                Account destination = accounts.get(toAccount);
+    
+            if (source != null && destination != null && source.getBalance() >= value) {
+                source.withdraw(value);
+                destination.deposit(value);
+                return true;
+            }
+            return false;
+            } finally {
+                secondLockObj.unlock(); // Unlock the second account
+            }
+            
+        } finally {
+            firsLockObj.unlock(); // Unlock the first account
+        }
+    }
+
+    // Method to get the lock for a specific account
+    private static ReentrantLock getLock(int account) {
+        ReentrantLock lock = locks.get(account);
+        if (lock == null) {
+            lock = new ReentrantLock();
+            locks.put(account, lock);
+        }
+        return lock;
     }
 
     // Method to display the accounts for debugging
