@@ -95,6 +95,11 @@ public class WebServer {
                 "\n" +
                 "        <input type=\"submit\" value=\"Submit\">\n" +
                 "    </form>\n" +
+                "<p>Current Account Balance: </p>\n" +
+                "<table>\n" +
+                "<tr><th>Account ID</th><th>Account Balance</th></tr>\n" +
+                displayAccounts() +
+                "</table>\n" +
                 "</body>\n" +
                 "</html>\n";
         out.write(response.getBytes());
@@ -161,7 +166,11 @@ public class WebServer {
                 "<p>Value: " + value + "</p>" +
                 "<p>To Account: " + toAccount + "</p>";
         }
-        responseContent += "</body></html>";
+        responseContent += "<p>Current Account Balance: </p>\n" +
+            "<table>\n" +
+            "<tr><th>Account ID</th><th>Account Balance</th></tr>\n" +
+            displayAccounts() +
+            "</table>\n"+"</body></html>";
 
         // Respond with the received form inputs
         String response = "HTTP/1.1 200 OK\r\n" +
@@ -183,6 +192,15 @@ public class WebServer {
             return true;
         }
         return false;
+    }
+
+    // Method to display the accounts for debugging
+    private static String displayAccounts(){
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<Integer, Account> entry : accounts.entrySet()) {
+            sb.append("<tr><td>").append(entry.getKey()).append("</td><td>").append(entry.getValue().getBalance()).append("</td></tr>");
+        }
+        return sb.toString();
     }
 
     public static void main(String[] args) {
