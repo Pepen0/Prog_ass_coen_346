@@ -1,0 +1,45 @@
+@startuml
+
+package ca.concordia.server {
+
+    class Account {
+        - AtomicInteger balance
+        - int id
+        --
+        + Account(int balance, int id)
+        + int getBalance()
+        + void withdraw(int amount)
+        + void deposit(int amount)
+    }
+
+    class WebServer {
+        - static Map<Integer, Account> accounts
+        - static Map<Integer, ReentrantLock> locks
+        - static List<String> successfulTransactions
+        - static int transactionCounter
+        --
+        - static void initializeAccounts()
+        + void start() throws IOException
+        - static void handleGetRequest(OutputStream out) throws IOException
+        - static void handlePostRequest(BufferedReader in, OutputStream out) throws IOException
+        - static boolean processTransfer(int fromAccount, int toAccount, int value)
+        - static ReentrantLock getLock(int account)
+        - static void recordTransaction(int fromAccount, int toAccount, int value)
+        - static String displayAccounts()
+        - static String displayTransactions()
+        + static void main(String[] args)
+    }
+
+    Account "1" *-- "1..*" WebServer : manages
+    WebServer *-- ReentrantLock : uses
+    WebServer *-- Socket : listens
+    WebServer *-- ServerSocket : uses
+    WebServer *-- BufferedReader : processes
+    WebServer *-- OutputStream : responds
+
+    WebServer --> "threadPool : ExecutorService" Executors : uses
+    WebServer --> "Map<Integer, Account>" HashMap : manages accounts
+    WebServer --> "List<String>" ArrayList : stores transactions
+}
+
+@enduml

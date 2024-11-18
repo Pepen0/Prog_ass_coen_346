@@ -1,0 +1,34 @@
+@startuml
+
+package ca.concordia.client {
+
+    class SimpleWebClient {
+        + void main(String[] args)
+    }
+
+    class SimpleWebClientDeadlock implements Runnable {
+        - int fromAccount
+        - int toAccount
+        --
+        + SimpleWebClientDeadlock(int fromAccount, int toAccount)
+        + void run()
+        + void main(String[] args)
+    }
+
+    SimpleWebClient --> Socket : "establishes connection"
+    SimpleWebClient --> PrintWriter : "sends POST request"
+    SimpleWebClient --> BufferedReader : "reads response"
+    SimpleWebClient --> InputStream : "receives response"
+    SimpleWebClient --> OutputStream : "sends data"
+
+    SimpleWebClientDeadlock -down-> Thread : "runs multiple threads"
+    SimpleWebClientDeadlock --> Socket : "establishes connection"
+    SimpleWebClientDeadlock --> PrintWriter : "sends POST request"
+    SimpleWebClientDeadlock --> BufferedReader : "reads response"
+    SimpleWebClientDeadlock --> InputStream : "receives response"
+    SimpleWebClientDeadlock --> OutputStream : "sends data"
+
+    SimpleWebClient --> SimpleWebClientDeadlock : "utilizes for concurrency"
+}
+
+@enduml
