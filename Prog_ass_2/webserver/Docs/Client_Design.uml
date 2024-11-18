@@ -27,8 +27,6 @@ package ca.concordia.client {
     SimpleWebClientDeadlock --> BufferedReader : "reads response"
     SimpleWebClientDeadlock --> InputStream : "receives response"
     SimpleWebClientDeadlock --> OutputStream : "sends data"
-
-    SimpleWebClient --> SimpleWebClientDeadlock : "utilizes for concurrency"
 }
 
 @enduml
