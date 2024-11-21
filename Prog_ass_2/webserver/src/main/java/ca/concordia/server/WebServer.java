@@ -36,6 +36,8 @@ public class WebServer {
         accounts.put(321, new Account(5000, 321));
         accounts.put(432, new Account(2000, 432));
         accounts.put(345, new Account(4000, 345));
+        accounts.put(1234, new Account(3000, 1234));
+        accounts.put(5678, new Account(1000, 5678));
     }
 
     // Method to start the server
@@ -177,26 +179,26 @@ public class WebServer {
 
         // Create the response
         String responseContent = "<html><body><h1>Thank you for using Concordia Transfers</h1>";
-        if (success) {
-            responseContent += "<h2>Transfer Successful!</h2>"+
-                "<p>Account: " + account + "</p>" +
-                "<p>Value: " + value + "</p>" +
-                "<p>To Account: " + toAccount + "</p>";
-        } else {
-            responseContent += "<h2>Transfer Failed!</h2>"+
-                "<p>Account: " + account + "</p>" +
-                "<p>Value: " + value + "</p>" +
-                "<p>To Account: " + toAccount + "</p>";
-        }
+        // if (success) {
+        //     responseContent += "<h2>Transfer Successful!</h2>"+
+        //         "<p>Account: " + account + "</p>" +
+        //         "<p>Value: " + value + "</p>" +
+        //         "<p>To Account: " + toAccount + "</p>";
+        // } else {
+        //     responseContent += "<h2>Transfer Failed!</h2>"+
+        //         "<p>Account: " + account + "</p>" +
+        //         "<p>Value: " + value + "</p>" +
+        //         "<p>To Account: " + toAccount + "</p>";
+        // }
         responseContent += "<h2>Current Account Balance: </h2>\n" +
             "<table>\n" +
             "<tr><th>Account ID</th><th>Account Balance</th></tr>\n" +
-            displayAccounts() +
+            //displayAccounts() +
             "</table>\n" +
             "<h2>Successful Transactions: </h2>\n" +
             "<table>\n" +
             "<tr><th>Transaction No.</th><th>From Account</th><th>To Account</th><th>Value</th></tr>\n" +
-            displayTransactions() +
+            //displayTransactions() +
             "</table>\n"+"</body></html>";
 
         // Respond with the received form inputs
