@@ -9,6 +9,16 @@ class PCB:
 
     def __str__(self):
         return f"Process ID: {self.pid}, State: {self.state}, Priority: {self.priority}, Waiting Time: {self.waiting_time}"
+    
+
+class Process_table:
+    def __init__(self):
+        self.processes = []
+
+    def add_process(self, process):
+        self.processes.append(process)
+
+
 if __name__ == "__main__":
     process = PCB(1, "Running", 5, 10)
     print(process)
