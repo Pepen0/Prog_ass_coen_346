@@ -1,13 +1,14 @@
 # Design a default process
 
 class PCB:
-    def __init__(self, pid, state= "New", runing_time=1):
+    def __init__(self, pid, ppid=0, state= "New", runing_time=1):
         self.pid = pid
+        self.ppid = ppid
         self.state = state
         self.runing_time = runing_time
 
     def __str__(self):
-        return f"Process ID: {self.pid}, State: {self.state}, Waiting Time: {self.runing_time}"
+        return f"Process ID: {self.pid}, Parent ID: {self.ppid}, State: {self.state}, Waiting Time: {self.runing_time}"
     
     def set_state(self, state):
         self.state = state
@@ -51,15 +52,19 @@ class Process_table:
 
 def create_process(process_table, running_time=1):
     pid = len(process_table.get_processes()) + 1
-    process = PCB(pid, runing_time=running_time)
+    process = PCB(pid=pid, runing_time=running_time)
     print(process," Action: Created process")
     process_table.add_process(process)
 
-def run_process(process_table, total_runing_time):
-    
-    for i in range(total_runing_time):
+def fork_process(process_table, process_id, running_time=1):
+    pid = len(process_table.get_processes()) + 1
+    ppid = process_id
+    process = PCB(pid=pid, ppid=ppid, runing_time=running_time)
+    print(process," Action: Created process ",ppid, " child")
+    process_table.add_process(process)
 
-        for process in process_table.get_processes():
+def Algorithm_1(process_table):
+    for process in process_table.get_processes():
             process.set_state("Running")
 
             if process.get_runing_time() > 0:
@@ -67,8 +72,16 @@ def run_process(process_table, total_runing_time):
                 process.set_runing_time(process.get_runing_time() - 1)
                 process.set_state("Waiting")
             elif process.get_runing_time() == 0:
+                print(process," Action: Terminate process")
                 process_table.remove_process(process)
                 process.set_state("Terminated")
+            else:
+                print("Error: Process runing time is less than 0")
+
+def run_process(process_table, total_runing_time):
+    
+    for i in range(total_runing_time):
+        Algorithm_1(process_table)
 
 
 def switch_process(process_table, process_1_id, process_2_id):
@@ -83,8 +96,8 @@ def switch_process(process_table, process_1_id, process_2_id):
 
 if __name__ == "__main__":
     process_table = Process_table()
+    total_runing_time = 20
     create_process(process_table)
     create_process(process_table,2)
-    print(process_table)
-    run_process(process_table, 3)
-    print(process_table)
+    fork_process(process_table,process_id=2,running_time=1)
+    run_process(process_table, total_runing_time)
