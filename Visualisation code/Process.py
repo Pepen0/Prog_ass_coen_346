@@ -67,9 +67,10 @@ class Process_table:
     def __str__(self):
         return "\n".join([str(process) for process in self.processes])
 class Scheduler:
-    def __init__(self):
+    def __init__(self,Algorithm= "FIFO"):
         self.timer = 0
         self.process_table = Process_table()
+        self.Algorithm = Algorithm
 
         total_running_time = 20
         self.create_process(running_time=1)
@@ -78,25 +79,29 @@ class Scheduler:
         self.run_process(total_running_time=total_running_time)
 
     def create_process(self, running_time=1):
+        self.timer += 1
         pid = len(self.process_table.get_processes()) + 1
-        process = PCB(pid=pid, running_time=running_time)
+        process = PCB(pid=pid, running_time=running_time, arrival_time=self.timer)
         print(process, "Action: Created process")
         self.process_table.add_process(process)
 
     def fork_process(self, parent_id):
+        self.timer += 1
         pid = len(self.process_table.get_processes()) + 1
         parent_process = self.process_table.get_process_by_pid(parent_id)[0]
         parent_process.set_cpid(pid)
-        process = PCB(pid=pid, ppid=parent_id, running_time=parent_process.get_running_time())
+        process = PCB(pid=pid, ppid=parent_id, running_time=parent_process.get_running_time(), arrival_time=self.timer)
         print(process, "Action: Created process", parent_id, "child")
         self.process_table.add_process(process)
 
     def exec_process(self, process):
+        self.timer += 1
         process.set_running_time(process.get_running_time() - 1)
         # TODO: Add code to read code here
         process.set_state("Waiting")
 
     def terminate_process(self, process):
+        self.timer += 1
         parent_process = self.process_table.get_process_by_pid(process.get_pid())[0]
 
         if parent_process.get_waiting_status()[1] == process.get_pid():
@@ -109,16 +114,36 @@ class Scheduler:
         process.set_state("Terminated")
 
     def wait_process(self, process):
+        self.timer += 1
         if process.get_cpid() != 0:
             process.set_state("Waiting")
             process.set_waiting_status(1, 0)
 
     def wait_process_pid(self, parent_process, child_process):
+        self.timer += 1
         if parent_process.get_cpid() != 0:
             parent_process.set_state("Waiting")
             parent_process.set_waiting_status(1, child_process.get_pid())
 
-    def Algorithm_1(self):
+    def FIFO(self):
+        for process in self.process_table.get_processes():
+            process.set_state("Running")
+
+            if process.get_running_time() > 0:
+                print(process, "Action: Run process for 1 time unit")
+                self.exec_process(process)
+            elif process.get_running_time() == 0:
+                if process.get_waiting_status()[0] == 0:
+                    self.terminate_process(process)
+                elif process.get_waiting_status()[1] != 0:
+                    print(process, "Action: Waiting for child process", process.get_waiting_status()[1])
+                else:
+                    print(process, "Action: Waiting for any child process")
+
+            else:
+                print("Error: Process running time is less than 0")
+    
+    def Algorithm_2(self):
         for process in self.process_table.get_processes():
             process.set_state("Running")
 
@@ -138,7 +163,11 @@ class Scheduler:
 
     def run_process(self, total_running_time):
         for _ in range(total_running_time):
-            self.Algorithm_1()
+            
+            if self.Algorithm == "FIFO":
+                self.FIFO()
+            else:
+                self.Algorithm_2()
 
 if __name__ == "__main__":
-    scheduler = Scheduler()
+    scheduler = Scheduler("FIFO")
