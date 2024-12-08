@@ -29,6 +29,9 @@ class PCB:
     def get_pid(self):
         return self.pid
     
+    def get_ppid(self):
+        return self.ppid
+    
     def set_cpid(self, cpid):
         self.cpid = cpid
     
@@ -102,12 +105,12 @@ class Scheduler:
 
     def terminate_process(self, process):
         self.timer += 1
-        parent_process = self.process_table.get_process_by_pid(process.get_pid())[0]
-
-        if parent_process.get_waiting_status()[1] == process.get_pid():
-            parent_process.set_waiting_status(0, 0)
-        elif parent_process.get_waiting_status()[0] == 1 and parent_process.get_waiting_status()[1] == 0:
-            parent_process.set_waiting_status(0, 0)
+        if process.get_ppid() != 0:
+            parent_process = self.process_table.get_process_by_pid(process.get_ppid())[0]
+            if parent_process.get_waiting_status()[1] == process.get_pid():
+                parent_process.set_waiting_status(0, 0)
+            elif parent_process.get_waiting_status()[0] == 1 and parent_process.get_waiting_status()[1] == 0:
+                parent_process.set_waiting_status(0, 0)
 
         print(process, "Action: Terminate process")
         self.process_table.remove_process(process)
@@ -128,46 +131,47 @@ class Scheduler:
     def FIFO(self):
         for process in self.process_table.get_processes():
             process.set_state("Running")
+            Timeout= 100
 
-            if process.get_running_time() > 0:
-                print(process, "Action: Run process for 1 time unit")
-                self.exec_process(process)
-            elif process.get_running_time() == 0:
-                if process.get_waiting_status()[0] == 0:
-                    self.terminate_process(process)
-                elif process.get_waiting_status()[1] != 0:
-                    print(process, "Action: Waiting for child process", process.get_waiting_status()[1])
+            while process.get_running_time() >= 0 and Timeout > 0:
+                Timeout -= 1
+                if process.get_running_time() > 0:
+                    print(process, "Action: Run process for 1 time unit")
+                    self.exec_process(process)
+                elif process.get_running_time() == 0:
+                    if process.get_waiting_status()[0] == 0:
+                        self.terminate_process(process)
+                        Timeout = 0
+                    elif process.get_waiting_status()[1] != 0:
+                        print(process, "Action: Waiting for child process", process.get_waiting_status()[1])
+                    else:
+                        print(process, "Action: Waiting for any child process")
                 else:
-                    print(process, "Action: Waiting for any child process")
-
-            else:
-                print("Error: Process running time is less than 0")
+                    print("Error: Process running time is less than 0")
     
-    def Algorithm_2(self):
-        for process in self.process_table.get_processes():
-            process.set_state("Running")
+    def SJF(self):
+        pass
 
-            if process.get_running_time() > 0:
-                print(process, "Action: Run process for 1 time unit")
-                self.exec_process(process)
-            elif process.get_running_time() == 0:
-                if process.get_waiting_status()[0] == 0:
-                    self.terminate_process(process)
-                elif process.get_waiting_status()[1] != 0:
-                    print(process, "Action: Waiting for child process", process.get_waiting_status()[1])
-                else:
-                    print(process, "Action: Waiting for any child process")
 
-            else:
-                print("Error: Process running time is less than 0")
+    def RR(self):
+        pass
+
+    def Priority(self):
+        pass
 
     def run_process(self, total_running_time):
         for _ in range(total_running_time):
             
             if self.Algorithm == "FIFO":
                 self.FIFO()
+            elif self.Algorithm == "SJF":
+                self.SJF()
+            elif self.Algorithm == "RR":
+                self.RR()
+            elif self.Algorithm == "Priority":
+                self.Priority()
             else:
-                self.Algorithm_2()
+                print("Error: Invalid algorithm")
 
 if __name__ == "__main__":
     scheduler = Scheduler("FIFO")
